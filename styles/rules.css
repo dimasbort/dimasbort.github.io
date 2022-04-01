@@ -1,0 +1,29 @@
+.rules {
+    border: 4px solid #FF9211;
+    border-radius: 15px;
+    padding: 40px 205px 200px;
+    width: 80%;
+    max-width: 1152px;
+    margin: 0 auto;
+}
+
+.rules__heading {
+    font-weight: 400;
+    font-size: 64px;
+    line-height: 80px;
+    margin-bottom: 40px;
+}
+
+.rules__list-item {
+    margin-bottom: 40px;
+}
+
+.rules__list-item:last-child {
+    margin-bottom: 0;
+}
+
+@media screen and (max-width: 920px) {
+    .rules {
+        padding: 40px 55px 100px;
+    }
+}

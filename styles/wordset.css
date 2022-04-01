@@ -1,0 +1,36 @@
+main {
+    justify-content: space-around;
+}
+
+.set-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    border: 2px solid #102676;
+    box-sizing: border-box;
+    flex-grow: 1;
+}
+
+.set-content a {
+    display: flex;
+    justify-content: left;
+    color: white;
+    font-size: 64px;
+    padding-left: 25px;
+}
+
+.set-content span {
+    display: flex;
+    justify-content: right;
+    align-items: baseline;
+    color: white;
+    font-size: 32px;
+    margin-right: 20px;
+}
+
+@media screen and (max-width: 555px) {
+    .set-content span {
+        margin-top: 30px;
+    }
+}

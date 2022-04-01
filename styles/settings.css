@@ -1,0 +1,58 @@
+main {
+    justify-content: flex-start;
+}
+
+.settings {
+    padding-top: 100px;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.settings_block-wrapper {
+    display: flex;
+    margin-bottom: 40px;
+    align-items: center;
+}
+
+.settings_block-wrapper label {
+    margin-right: 90px;
+    margin-bottom: 40px;
+    width: 320px;
+}
+
+.settings_block-wrapper select {
+    border: 3px solid #FF9211;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 170px;
+    height: 95px;
+    background-color: #106A76;
+    padding: 5px 30px;
+    color: white;
+    font-size: 48px;
+}
+
+.settings_block-wrapper select:focus {
+    outline: none;
+}
+
+.settings-form input[type="checkbox"] {
+    width: 75px;
+    height: 75px;
+}
+
+@media screen and (max-width: 600px) {
+    .settings_block-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 40px;
+    }
+    .settings_block-wrapper label {
+        margin-right: 0;
+    }
+}

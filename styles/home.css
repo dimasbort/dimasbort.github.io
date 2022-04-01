@@ -1,0 +1,43 @@
+.main-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content .main-content__game-btn {
+  padding: 40px 70px;
+  border-radius: 50%;
+  margin-bottom: 16px;
+  color: white;
+  font-size: 40px;
+
+  background-color: #ff9211;
+}
+
+/* hover - отвечает за наведение на компонент */
+.main-content .main-content__game-btn:hover {
+  background-color: white;
+  color: black;
+}
+
+.main-content .main-content__game-btn:first-of-type {
+  background-color: #c4c4c4;
+}
+
+.authorization {
+  display: flex;
+}
+
+.authorization .authorization__btn-block {
+  width: 100px;
+  padding: 10px;
+  font-size: 20px;
+  color: white;
+  background-color: #0f2d99;
+  border-radius: 15%;
+}
+
+.authorization .authorization__btn-block:first-of-type {
+  margin-right: 15px;
+}
+
+
