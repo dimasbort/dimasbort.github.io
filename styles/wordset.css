@@ -10,6 +10,7 @@ main {
     border: 2px solid #102676;
     box-sizing: border-box;
     flex-grow: 1;
+    font-family: "Ledger";
 }
 
 .set-content a {

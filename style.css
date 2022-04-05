@@ -1,3 +1,24 @@
+@font-face {
+  font-family: "Molle"; 
+  src: url("./fonts/Molle-Regular.ttf") format("truetype"); 
+  font-style: normal; 
+  font-weight: normal; 
+  } 
+
+@font-face {
+  font-family: "Timmana"; 
+  src: url("./fonts/Timmana-Regular.ttf") format("truetype"); 
+  font-style: normal; 
+  font-weight: normal; 
+} 
+
+@font-face {
+  font-family: "Ledger"; 
+  src: url("./fonts/Ledger-Regular.ttf") format("truetype"); 
+  font-style: normal; 
+  font-weight: normal; 
+} 
+  
 * {
   box-sizing: border-box;
 }
@@ -28,10 +49,6 @@ ul {
   margin: 0;
 }
 
-h2 {
-  margin: 0;
-}
-
 img {
   max-width: 100%;
   display: block;
@@ -48,6 +65,7 @@ header {
   justify-content: center;
   background-color: #106a76;
   font-size: 48px;
+  font-family: "Molle";
   color: white;
 }
 
@@ -80,6 +98,8 @@ main {
 footer {
   flex: 0 0 auto;
   padding: 20px;
+  font-family: "Timmana";
+  font-size: 30px;
 }
 
 .footer-content {

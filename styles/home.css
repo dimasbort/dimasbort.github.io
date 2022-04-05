@@ -3,41 +3,41 @@
   flex-direction: column;
 }
 
-.main-content .main-content__game-btn {
+.main-content .main-content__game-link {
+  text-align: center;
   padding: 40px 70px;
   border-radius: 50%;
   margin-bottom: 16px;
   color: white;
   font-size: 40px;
-
+  font-family: "Molle";
   background-color: #ff9211;
 }
 
 /* hover - отвечает за наведение на компонент */
-.main-content .main-content__game-btn:hover {
+.main-content .main-content__game-link:hover {
   background-color: white;
   color: black;
 }
 
-.main-content .main-content__game-btn:first-of-type {
+.main-content .main-content__game-link:first-of-type {
   background-color: #c4c4c4;
 }
 
 .authorization {
   display: flex;
+  font-family: "Timmana";
 }
 
-.authorization .authorization__btn-block {
+.authorization .authorization__link-block {
+  text-align: center;
   width: 100px;
-  padding: 10px;
-  font-size: 20px;
+  padding: 10px 0 0px;
   color: white;
   background-color: #0f2d99;
   border-radius: 15%;
 }
 
-.authorization .authorization__btn-block:first-of-type {
+.authorization .authorization__link-block:first-of-type {
   margin-right: 15px;
 }
-
-

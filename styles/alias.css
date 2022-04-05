@@ -4,9 +4,10 @@ main {
 
 .alias__time {
     display: block;
-    margin: 80px 0 100px;
+    margin: 35px 0 50px;
     font-size: 64px;
     text-align: center;
+    font-family: "Molle";
 }
 
 .alias__game-field {
@@ -15,17 +16,20 @@ main {
     align-items: center;
 }
 
-.alias__guessed-block {
+.alias__score-block {
     display: flex;
     flex-direction: column;
 }
 
-.alias__guessed-text {
-    margin-bottom: 40px;
+.alias__score-block .alias__score-block__text {
+    margin-bottom: 16px;
+    font-family: "Ledger";
 }
 
-.alias__guessed-number {
+.alias__score-block .alias__score-block__number {
+    text-align: center;
     font-size: 64px;
+    font-family: "Molle";
 }
 
 .alias__word-table {
@@ -41,35 +45,44 @@ main {
 
 .alias__word {
     font-size: 64px;
-}
-
-.alias__skipped-block {
-    display: flex;
-    flex-direction: column;
-}
-
-.alias__skipped-text {
-    margin-bottom: 40px;
-}
-
-.alias__skipped-number {
-    font-size: 64px;
+    font-family: "Ledger";
 }
 
 @media screen and (max-width: 550px) {
     .alias__game-field {
-        flex-direction: column;
+        margin-top: 65px;
     }
+
+
     .alias__skipped-block {
         flex-direction: row;
         margin-top: 50px;
         color: #000;
     }
+
+    .alias__word-table {
+        width: 200px;
+        height: 200px;
+    }
+
     .alias__guessed-block {
         flex-direction: row;
         margin-bottom: 50px;
     }
-    .alias__guessed-text, .alias__skipped-text {
+
+    .alias__guessed-text,
+    .alias__skipped-text {
         margin-right: 40px;
+    }
+}
+
+@media screen and (max-width: 420px) {
+    .alias__word-table {
+        width: 150px;
+        height: 150px;
+    }
+
+    .alias__word {
+        font-size: 32px;
     }
 }

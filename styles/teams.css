@@ -4,35 +4,33 @@ main {
 }
 
 .add-team_btn {
-    width: 360px;
-    height: 100px;
+    width: 270px;
+    height: 80px;
     background: #1A993E;
     border: 4px solid #D71515;
     border-radius: 15px;
     font-size: 36px;
     color: white;
-    margin-top: 125px;
-    margin-bottom: 100px;
+    margin-top: 50px;
+    margin-bottom: 45px;
+    font-family: "Ledger";
 }
 
 .teams {
     display: flex;
-    justify-content: center;
-}
-
-.teams__left {
-    display: flex;
-    flex-direction: column;
-    margin-right: 180px;
+    justify-content: space-around;
+    flex-wrap: wrap;
 }
 
 .teams__item {
+    width: 35%;
     background: #4E1FB1;
     border: 4px solid #FF9211;
     border-radius: 15px;
-    padding: 10px 100px;
-    margin-bottom: 80px;
+    padding: 10px;
+    margin-bottom: 30px;
     position: relative;
+    font-family: "Ledger";
 }
 
 .teams-item:last-child {
@@ -47,15 +45,13 @@ main {
     right: 20px;
 }
 
-.teams__right {
-    display: flex;
-    flex-direction: column;
-}
+
 
 @media screen and (max-width: 860px) {
     .teams {
         justify-content: space-around;
     }
+
     .teams__left {
         margin-right: 0px;
     }
@@ -66,9 +62,11 @@ main {
         flex-direction: column;
         align-items: center;
     }
+
     .teams__item {
         max-width: 340px;
     }
+
     .teams__left {
         margin-right: 0px;
     }
@@ -78,18 +76,21 @@ main {
     .add-team_btn {
         width: 300px;
     }
+
     .left-arrow {
         width: 50px;
         height: 50px;
         top: 30px;
         left: 15px;
     }
+
     .right-arrow {
         width: 50px;
         height: 50px;
         top: 30px;
         right: 15px;
     }
+
     h1 {
         font-size: 48px;
     }

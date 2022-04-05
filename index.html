@@ -8,26 +8,29 @@
     <meta name="description" content="Simple game - Alias">
     <meta name="keywords" content="Alias">
     <title>Alias</title>
-    <link rel="stylesheet" href="style.css"/>
-    <link rel="stylesheet" href="./styles/home.css"/>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="./styles/home.css" />
 </head>
+
 <body>
-    <header><h1>Welome to Alias</h1></header>
+    <header>
+        <h1>Welome to Alias</h1>
+    </header>
     <main>
         <section class="main-content">
-            <button  class="main-content__game-btn">
+            <a class="main-content__game-link">
                 Continue
-            </button>
-            <button onclick="document.location='html/teams.html'" class="main-content__game-btn">
+            </a>
+            <a href='html/teams.html' class="main-content__game-link">
                 New game
-            </button>
-            <button onclick="document.location='html/rules.html'" class="main-content__game-btn">
+            </a>
+            <a href='html/rules.html' class="main-content__game-link">
                 Rules
-            </button>
+            </a>
         </section>
         <section class="authorization">
-            <button onclick="document.location='html/signin.html'" class="authorization__btn-block">Sign in</button>
-            <button onclick="document.location='html/register.html'" class="authorization__btn-block">Register</button>
+            <a href='html/signin.html' class="authorization__link-block">Sign in</a>
+            <a href='html/register.html' class="authorization__link-block">Register</a>
         </section>
     </main>
     <footer>
