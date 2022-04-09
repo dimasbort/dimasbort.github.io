@@ -7,6 +7,8 @@ let defaultTeamsCount = 2;
 let count = 2;
 
 function deleteTeam(e, team) {
+  if (count <= 2)
+    return;
   count -= 1;
   const deletedTeam = document.getElementById(`team-${team}`);
   deletedTeam.remove();
