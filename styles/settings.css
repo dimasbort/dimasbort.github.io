@@ -45,6 +45,18 @@ main {
     height: 32px;
 }
 
+.settings-form input[type="submit"] {
+    display: block;
+    margin: auto auto;
+    padding: 10px 0;
+    width: 130px;
+    background-color: #1a993e;
+    color: white;
+    font-size: 25px;
+    border-radius: 10px;
+    font-family: "Molle";
+  }
+
 @media screen and (max-width: 600px) {
     .settings_block-wrapper {
         display: flex;

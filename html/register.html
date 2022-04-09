@@ -15,7 +15,7 @@
         <h1>Registration</h1>
     </header>
     <main>
-        <form action="../index.html" class="registration-form" method="post">
+        <form id="authorization-form" class="registration-form" method="post">
             <label for="name">Email</label>
             <input id="name" type="email" name="name">
 
@@ -24,7 +24,7 @@
 
             <label for="confirmed-password">Confirm password</label>
             <input id="confirmed-password" type="password" name="confirmedPassword">
-            <input type="submit" value="Register">
+            <input id="submit-btn" type="submit" value="Register">
         </form>
         <a class="registration-link" href="../html/signin.html">Have account?</a>
     </main>
@@ -37,6 +37,7 @@
             </div>
         </div>
     </footer>
+    <script defer src="../scripts/registration.js"></script>
 </body>
 
 </html>

@@ -11,18 +11,21 @@ main {
     border-radius: 15px;
     font-size: 36px;
     color: white;
-    margin-top: 50px;
     margin-bottom: 45px;
     font-family: "Ledger";
 }
 
-.teams {
+.add-team_btn:hover {
+    cursor: pointer;
+}
+
+.teams-field {
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
 }
 
-.teams__item {
+.teams-field__item {
     width: 35%;
     background: #4E1FB1;
     border: 4px solid #FF9211;
@@ -33,11 +36,11 @@ main {
     font-family: "Ledger";
 }
 
-.teams-item:last-child {
+.teams-field-item:last-child {
     margin-bottom: 0;
 }
 
-.teans__item-btn {
+.teams-field__item .teams-field__item-btn {
     position: absolute;
     width: 40px;
     height: 40px;

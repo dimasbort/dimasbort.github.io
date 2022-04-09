@@ -14,11 +14,10 @@
     <header>
         <h1>Settings</h1>
         <a href="../html/teams.html" class="left-arrow"><img src="../images/left-arrow.svg" alt="left-arrow"></a>
-        <a href="../html/wordset.html" class="right-arrow"><img src="../images/right-arrow.svg" alt="left-arrow"></a>
     </header>
     <main>
         <section class="settings">
-            <form action="../index.html" class="settings-form" method="post">
+            <form id="setting-form" action="../index.html" class="settings-form" method="post">
                 <div class="settings_block-wrapper">
                     <label for="words">Number of words (to win)</label>
                     <select name="words" id="words">
@@ -41,6 +40,7 @@
                     <label for="pass">Pass fine</label>
                     <input id="pass" type="checkbox" name="pass">
                 </div>
+                <input id="submit-btn" type="submit" value="Set">
             </form>
         </section>
     </main>
@@ -53,6 +53,7 @@
             </div>
         </div>
     </footer>
+    <script defer src="../scripts/settings.js"></script>
 </body>
 
 </html>

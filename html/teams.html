@@ -17,29 +17,17 @@
         <a href="../html/settings.html" class="right-arrow"><img src="../images/right-arrow.svg" alt="left-arrow"></a>
     </header>
     <main>
-        <button class="add-team_btn">Add team</button>
-        <section class="teams">
-            <div class="teams__item">
-                <span>First team</span>
-                <button class="teans__item-btn">
+        <button id="team-create" class="add-team_btn">Add team</button>
+        <section id="teams" class="teams-field">
+            <div id="team-1" class="teams-field__item">
+                <span>Team 1</span>
+                <button id="delete-1" class="teams-field__item-btn">
                     <img src="../images/cross.svg" alt="">
                 </button>
             </div>
-            <div class="teams__item">
-                <span>Second team</span>
-                <button class="teans__item-btn">
-                    <img src="../images/cross.svg" alt="">
-                </button>
-            </div>
-            <div class="teams__item">
-                <span>Third team</span>
-                <button class="teans__item-btn">
-                    <img src="../images/cross.svg" alt="">
-                </button>
-            </div>
-            <div class="teams__item">
-                <span>Fourth team</span>
-                <button class="teans__item-btn">
+            <div id="team-2" class="teams-field__item">
+                <span>Team 2</span>
+                <button id="delete-2" id="team-2" class="teams-field__item-btn">
                     <img src="../images/cross.svg" alt="">
                 </button>
             </div>
@@ -54,6 +42,6 @@
             </div>
         </div>
     </footer>
+    <script defer src="../scripts/team.js"></script>
 </body>
-
 </html>

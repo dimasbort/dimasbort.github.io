@@ -15,18 +15,18 @@
         <h1>Alias</h1>
     </header>
     <main>
-        <time class="alias__time">00:30</time>
+        <time id="timer" class="alias__time">--:--</time>
         <article class="alias__game-field">
             <div class="alias__score-block">
                 <span class="alias__score-block__text">Guessed</span>
-                <span class="alias__score-block__number">0</span>
+                <span id="guessed" class="alias__score-block__number">0</span>
             </div>
-            <div class="alias__word-table">
+            <div id="alias-word" class="alias__word-table">
                 <span class="alias__word">Word</span>
             </div>
             <div class="alias__score-block">
                 <span class="alias__score-block__text">Skipped</span>
-                <span class="alias__score-block__number">0</span>
+                <span id="skipped" class="alias__score-block__number">0</span>
             </div>
         </article>
     </main>
@@ -39,6 +39,7 @@
             </div>
         </div>
     </footer>
+    <script defer src="../scripts/alias.js"></script>
 </body>
 
 </html>

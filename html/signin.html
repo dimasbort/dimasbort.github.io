@@ -15,14 +15,14 @@
         <h1>Sign in</h1>
     </header>
     <main>
-        <form action="../index.html" class="registration-form" method="post">
+        <form id="authorization-form" class="registration-form">
             <label for="name">Email</label>
             <input id="name" type="email" name="name">
 
             <label for="password">Password</label>
             <input id="password" type="password" name="password">
 
-            <input type="submit" value="Sign in">
+            <input id="submit-btn" type="submit" value="Sign in">
         </form>
         <a class="registration-link" href="../html/register.html">Register?</a>
     </main>
@@ -35,6 +35,7 @@
             </div>
         </div>
     </footer>
+    <script defer src="../scripts/authorization.js"></script>
 </body>
 
 </html>
