@@ -1,3 +1,5 @@
+import { register } from "../API/register.js";
+
 const form = document.getElementById("authorization-form");
 const inputName = document.getElementById("name");
 const inputPassword = document.getElementById("password");
@@ -18,6 +20,10 @@ successfullyRegistered.innerHTML =
 const serverError = document.createElement("div");
 serverError.innerHTML =
   '<div id="incorrectPasswords" style="color: red; text-align: center;">something went wrong</div>';
+
+const existUser = document.createElement("div");
+existUser.innerHTML =
+  '<div id="incorrectPasswords" style="color: red; text-align: center;">User with such email exists</div>';
 
 form.onsubmit = async (e) => {
   e.preventDefault();
@@ -45,18 +51,15 @@ form.onsubmit = async (e) => {
     password: elements.password.value,
   };
 
-  const response = await fetch(
-    "https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/application-1-xroue/service/register/incoming_webhook/register",
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-    }
-  );
-
-  console.log("response", response);
+  const response = await register(data);
 
   if (response.status === 200) {
     form.insertBefore(successfullyRegistered, submitBtn);
+    return;
+  }
+
+  if (response.status === 401) {
+    form.insertBefore(existUser, submitBtn);
     return;
   }
 

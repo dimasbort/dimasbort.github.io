@@ -1,4 +1,4 @@
-// import { variable } from "../API/login";
+import { login } from "../API/login.js";
 
 const form = document.getElementById("authorization-form");
 const inputName = document.getElementById("name");
@@ -27,38 +27,15 @@ form.onsubmit = async (e) => {
     name: elements.name.value,
     password: elements.password.value,
   };
+  
+  const user = await login(data);
 
-  // console.log("var", variable);
-  // console.log("var");
+  if (user) {
+    window.location.href = "../index.html";
+    return;
+  }
 
-  // const user = await login(data);
-
-  // if (user) {
-  //   window.location.href = "../index.html";
-  //   return;
-  // }
-
-  // form.insertBefore(notAuthorized, submitBtn);
-console.log(data)
-  fetch(
-    "https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/application-1-xroue/service/users/incoming_webhook/login",
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  )
-    .then((response) => response.json())
-    .then((json) => {
-      if (json) {
-        window.location.href = "../index.html";
-        return;
-      }
-
-      form.insertBefore(notAuthorized, submitBtn);
-    });
+  form.insertBefore(notAuthorized, submitBtn);
 };
 
 const onFocusHandler = () => {
