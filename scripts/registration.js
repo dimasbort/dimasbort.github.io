@@ -11,7 +11,15 @@ const NotsamePasswordsMessage = document.createElement("div");
 NotsamePasswordsMessage.innerHTML =
   '<div id="incorrectPasswords" style="color: red; text-align: center;">Error: Passwords must be same</div>';
 
-form.onsubmit = (e) => {
+const successfullyRegistered = document.createElement("div");
+successfullyRegistered.innerHTML =
+  '<div id="registered" style="color: green; text-align: center;">You successfully registered</div>';
+
+const serverError = document.createElement("div");
+serverError.innerHTML =
+  '<div id="incorrectPasswords" style="color: red; text-align: center;">something went wrong</div>';
+
+form.onsubmit = async (e) => {
   e.preventDefault();
 
   const { elements } = document.forms["authorization-form"];
@@ -32,10 +40,27 @@ form.onsubmit = (e) => {
     return;
   }
 
-  alert(
-    `Email ${elements.name.value} \nPassword ${elements.password.value}\nConfirm password ${elements.confirmedPassword.value}`
+  const data = {
+    name: elements.name.value,
+    password: elements.password.value,
+  };
+
+  const response = await fetch(
+    "https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/application-1-xroue/service/register/incoming_webhook/register",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
   );
-  window.location.href = "../index.html";
+
+  console.log("response", response);
+
+  if (response.status === 200) {
+    form.insertBefore(successfullyRegistered, submitBtn);
+    return;
+  }
+
+  form.insertBefore(serverError, submitBtn);
 };
 
 const onFocusHandler = () => {
