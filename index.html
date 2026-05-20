@@ -1107,9 +1107,9 @@
           || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
 
         if (host === "andreipalych.by" || host === "www.andreipalych.by") {
-          link.href = "https://api.andreipalych.by/admin/";
+          link.href = "/admin/";
         } else if (isLocal) {
-          link.href = "http://" + (host || "localhost") + ":4000/admin/";
+          link.href = "/admin/";
         } else {
           link.href = window.location.origin + "/admin/";
         }
