@@ -534,6 +534,8 @@ body {
   cursor: pointer;
   transition: 0.2s;
   font-size: 13px;
+  color: #eee;
+  font-family: inherit;
 }
 .sched-day:hover { border-color: #b59e5c; }
 .sched-day.on  { background: #b59e5c; color: #000; border-color: #b59e5c; font-weight: 700; }
@@ -541,6 +543,7 @@ body {
 
 .sched-day .day-name { font-weight: 600; font-size: 12px; }
 .sched-day .day-date { font-size: 12px; color: inherit; margin-top: 4px; }
+.sched-day .day-time { font-size: 11px; color: inherit; margin-top: 6px; opacity: 0.78; }
 
 /* ── Расписание по дням недели ── */
 .weekday-schedule { margin-top: 20px; }
@@ -643,6 +646,10 @@ body {
   margin-bottom: 18px;
 }
 
+#broadcast-toggle-btn {
+  margin-bottom: 14px;
+}
+
 .broadcast-panel {
   background: #1c1c1c;
   border: 1px solid #2a2a2a;
@@ -710,6 +717,34 @@ body {
   color: #999;
   font-size: 14px;
   margin-top: 3px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #202020;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  color: #eee;
+  font-weight: 700;
+}
+
+.toggle-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: #b59e5c;
+}
+
+.schedule-date-time-row {
+  margin-top: 8px;
+}
+
+.schedule-date-time-row input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* Кнопка удаления связи внутри тега услуги */

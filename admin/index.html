@@ -85,12 +85,14 @@
           <button class="a-btn small secondary" onclick="loadClients()">Найти</button>
         </div>
 
-        <div class="broadcast-panel">
+        <button id="broadcast-toggle-btn" class="a-btn small" onclick="toggleBroadcastPanel()">Отправить сообщение</button>
+
+        <div id="broadcast-panel" class="broadcast-panel" style="display:none">
           <label class="a-field">
             <span>Сообщение всем клиентам</span>
             <textarea id="broadcast-message" class="a-input textarea" maxlength="500" placeholder="Введите текст SMS"></textarea>
           </label>
-          <button class="a-btn" onclick="broadcastMessage()">Отправить сообщение</button>
+          <button class="a-btn" onclick="broadcastMessage()">Отправить всем клиентам</button>
           <div id="broadcast-status" class="form-status" style="display:none"></div>
         </div>
 
@@ -231,6 +233,33 @@
       <input type="hidden" id="ss-specialist-id">
       <input type="hidden" id="ss-service-id">
       <button class="a-btn" onclick="saveSpecialistService()">Сохранить</button>
+    </div>
+  </div>
+
+  <div id="modal-schedule-date" class="modal-overlay" style="display:none">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span id="schedule-date-title">День расписания</span>
+        <button onclick="closeModal('modal-schedule-date')">✕</button>
+      </div>
+      <label class="toggle-row">
+        <input id="schedule-date-active" type="checkbox" onchange="updateScheduleDateTimeState()">
+        <span>День открыт для записи</span>
+      </label>
+      <div class="a-label">Время работы в этот день</div>
+      <div class="weekday-row schedule-date-time-row">
+        <input id="schedule-date-from-h" class="time-part" placeholder="09" inputmode="numeric" maxlength="2">
+        <span>:</span>
+        <input id="schedule-date-from-m" class="time-part" placeholder="00" inputmode="numeric" maxlength="2">
+        <span>—</span>
+        <input id="schedule-date-to-h" class="time-part" placeholder="18" inputmode="numeric" maxlength="2">
+        <span>:</span>
+        <input id="schedule-date-to-m" class="time-part" placeholder="00" inputmode="numeric" maxlength="2">
+      </div>
+      <div id="schedule-date-error" class="error-msg" style="display:none"></div>
+      <input id="schedule-date-value" type="hidden">
+      <input id="schedule-date-specialist" type="hidden">
+      <button class="a-btn" onclick="saveScheduleDateSettings()">Сохранить</button>
     </div>
   </div>
 

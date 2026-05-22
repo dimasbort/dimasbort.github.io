@@ -13,6 +13,7 @@ let journalDate = getBarbershopDateString(new Date());
 let appointmentSlotDate = getBarbershopDateString(new Date());
 let selectedAppointmentSlot = "";
 let clientsSearchTimer = null;
+let scheduleDateRecords = [];
 
 function isLocalHost(hostname) {
   return ["localhost", "127.0.0.1", ""].includes(hostname)
@@ -604,6 +605,16 @@ function scheduleClientsSearch() {
   clientsSearchTimer = setTimeout(loadClients, 250);
 }
 
+function toggleBroadcastPanel(force) {
+  const panel = document.getElementById("broadcast-panel");
+  const button = document.getElementById("broadcast-toggle-btn");
+  if (!panel) return;
+
+  const shouldOpen = typeof force === "boolean" ? force : panel.style.display === "none";
+  panel.style.display = shouldOpen ? "block" : "none";
+  if (button) button.textContent = shouldOpen ? "Скрыть сообщение" : "Отправить сообщение";
+}
+
 async function loadClients() {
   const searchEl = document.getElementById("clients-search");
   const listEl = document.getElementById("clients-list");
@@ -675,10 +686,11 @@ async function loadSchedule() {
   const specId = document.getElementById("schedule-specialist").value;
   if (!specId) {
     document.getElementById("schedule-calendar").innerHTML = "";
+    scheduleDateRecords = [];
     return;
   }
 
-  const dates = await api("GET", `/admin/available-dates/${specId}`);
+  scheduleDateRecords = await api("GET", `/admin/available-dates/${specId}`);
   const today = new Date();
   today.setHours(3,0,0,0);
 
@@ -696,30 +708,102 @@ async function loadSchedule() {
     const d = new Date(today);
     d.setDate(today.getDate() + i);    
     const dateStr = d.toISOString().slice(0, 10);
-    const rec = dates.find(x => x.date === dateStr);
+    const rec = scheduleDateRecords.find(x => x.date === dateStr);
     const isOn = rec?.isAvailable;
     const cls = isOn ? "sched-day on" : "sched-day off";
+    const customTime = rec?.customStart && rec?.customEnd ? `${rec.customStart}-${rec.customEnd}` : "";
     html += `
-      <div class="${cls}" onclick="toggleDate('${dateStr}', ${specId}, ${isOn ? "false" : "true"})">
+      <button type="button" class="${cls}" onclick="openScheduleDateModal('${dateStr}', ${specId})">
         <div class="day-name">${weekdays[d.getDay()]}</div>
         <div class="day-date">${d.getDate()}.${String(d.getMonth()+1).padStart(2,"0")}</div>
-      </div>`;
+        ${customTime ? `<div class="day-time">${customTime}</div>` : ""}
+      </button>`;
   }
 
   html += `</div>`;
   document.getElementById("schedule-calendar").innerHTML = html;
 }
 
-async function toggleDate(date, specId, makeAvailable) {
+function openScheduleDateModal(date, specId) {
+  const rec = scheduleDateRecords.find(x => x.date === date);
+  const defaultInterval = getDefaultScheduleInterval(specId, date);
+  const [defaultStart = "", defaultEnd = ""] = defaultInterval ? defaultInterval.split("-") : ["", ""];
+  const [startH = "", startM = ""] = (rec?.customStart || defaultStart).split(":");
+  const [endH = "", endM = ""] = (rec?.customEnd || defaultEnd).split(":");
+  const displayDate = createLocalDate(date).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  document.getElementById("schedule-date-title").textContent = displayDate;
+  document.getElementById("schedule-date-value").value = date;
+  document.getElementById("schedule-date-specialist").value = specId;
+  document.getElementById("schedule-date-active").checked = Boolean(rec?.isAvailable);
+  document.getElementById("schedule-date-from-h").value = startH || "";
+  document.getElementById("schedule-date-from-m").value = startM || "";
+  document.getElementById("schedule-date-to-h").value = endH || "";
+  document.getElementById("schedule-date-to-m").value = endM || "";
+  document.getElementById("schedule-date-error").style.display = "none";
+  updateScheduleDateTimeState();
+  document.getElementById("modal-schedule-date").style.display = "flex";
+}
+
+function updateScheduleDateTimeState() {
+  const isActive = document.getElementById("schedule-date-active").checked;
+  ["from-h", "from-m", "to-h", "to-m"].forEach(part => {
+    document.getElementById(`schedule-date-${part}`).disabled = !isActive;
+  });
+}
+
+async function saveScheduleDateSettings() {
+  const errEl = document.getElementById("schedule-date-error");
+  const specId = document.getElementById("schedule-date-specialist").value;
+  const date = document.getElementById("schedule-date-value").value;
+  const isAvailable = document.getElementById("schedule-date-active").checked;
+  const fromH = normalizeTimePart(document.getElementById("schedule-date-from-h").value, 23);
+  const fromM = normalizeTimePart(document.getElementById("schedule-date-from-m").value, 59);
+  const toH = normalizeTimePart(document.getElementById("schedule-date-to-h").value, 23);
+  const toM = normalizeTimePart(document.getElementById("schedule-date-to-m").value, 59);
+  const customStart = fromH && fromM ? `${fromH}:${fromM}` : null;
+  const customEnd = toH && toM ? `${toH}:${toM}` : null;
+
+  errEl.style.display = "none";
+
+  if (isAvailable) {
+    if (!customStart || !customEnd) {
+      errEl.textContent = "Укажите начало и конец рабочего дня.";
+      errEl.style.display = "block";
+      return;
+    }
+
+    if (parseTimeToMinutes(customStart) >= parseTimeToMinutes(customEnd)) {
+      errEl.textContent = "Конец рабочего дня должен быть позже начала.";
+      errEl.style.display = "block";
+      return;
+    }
+  }
+
   await api("POST", "/admin/available-dates", {
     specialistId: specId,
     date,
-    isAvailable: makeAvailable,
+    isAvailable,
+    customStart: isAvailable ? customStart : null,
+    customEnd: isAvailable ? customEnd : null,
   });
+  closeModal("modal-schedule-date");
   loadSchedule();
 }
 
 // ── Вспомогательные ────────────────────────────────────────────────
+
+function getDefaultScheduleInterval(specId, dateString) {
+  const specialist = allSpecialists.find(s => s.id === Number(specId));
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const weekdayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][date.getUTCDay()];
+  return specialist?.schedule?.[weekdayKey]?.[0] || "";
+}
 
 function getBarbershopDateString(date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -750,6 +834,13 @@ function getHourInBarbershopTz(dateValue) {
     hour12: false,
   }).formatToParts(new Date(dateValue));
   return Number(parts.find(part => part.type === "hour")?.value || 0);
+}
+
+function parseTimeToMinutes(time) {
+  const [hours, minutes] = String(time || "").split(":").map(Number);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+  return hours * 60 + minutes;
 }
 
 function formatTime(date) {
