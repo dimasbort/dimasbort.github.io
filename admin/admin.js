@@ -7,7 +7,7 @@ const API = window.BARBERSHOP_API_URL
 const BARBERSHOP_TIME_ZONE = "Europe/Minsk";
 const JOURNAL_START_HOUR = 8;
 const JOURNAL_END_HOUR = 21;
-const JOURNAL_HOUR_HEIGHT = 92;
+const JOURNAL_HOUR_HEIGHT = 190;
 const BREAK_PHONE = "__BREAK__";
 let token = localStorage.getItem("ap_admin_token") || "";
 let allSpecialists = [];
@@ -133,7 +133,7 @@ async function loadAppointments() {
 
   el.innerHTML = `
     <div class="journal-scroll">
-      <div class="journal-grid" style="--specialists:${allSpecialists.length}">
+      <div class="journal-grid" style="--specialists:${allSpecialists.length};--half-hour-height:${JOURNAL_HOUR_HEIGHT / 2}px">
         <div class="time-head"></div>
         ${allSpecialists.map(s => `
           <div class="specialist-head">
@@ -167,7 +167,8 @@ function renderJournalAppointment(row, now) {
   const startMinutes = getMinutesInBarbershopTz(start);
   const endMinutes = getMinutesInBarbershopTz(end);
   const top = ((startMinutes - JOURNAL_START_HOUR * 60) / 60) * JOURNAL_HOUR_HEIGHT;
-  const height = Math.max(34, ((endMinutes - startMinutes) / 60) * JOURNAL_HOUR_HEIGHT - 6);
+  const duration = endMinutes - startMinutes;
+  const height = Math.max(34, (duration / 60) * JOURNAL_HOUR_HEIGHT - 6);
   const isBreak = row.client_phone === BREAK_PHONE;
   return `
     <div class="journal-appt ${isPast ? "past" : ""} ${isBreak ? "break" : ""}" style="top:${top}px;height:${height}px">
@@ -203,7 +204,7 @@ function renderJournalFreeSlots(specialist, rows) {
       if (busy) continue;
 
       const freeMinutes = getFreeMinutesForSlot(specialist.id, slot, rows);
-      if (freeMinutes < 15) continue;
+      if (freeMinutes < 30) continue;
 
       const top = ((minute - JOURNAL_START_HOUR * 60) / 60) * JOURNAL_HOUR_HEIGHT;
       slots.push(`
@@ -248,7 +249,7 @@ function openBreakModalFromJournalSlot() {
   const slotDate = new Date(selectedJournalSlot.slotIso);
   const specialist = allSpecialists.find(s => s.id === selectedJournalSlot.specialistId);
   const maxDuration = Math.min(selectedJournalSlot.freeMinutes, 180);
-  const options = [15, 30, 45, 60, 90, 120, 180].filter(value => value <= maxDuration);
+  const options = [30, 60, 90, 120, 150, 180].filter(value => value <= maxDuration);
   const durationSelect = document.getElementById("break-duration");
 
   closeModal("modal-journal-slot");
@@ -267,7 +268,7 @@ async function saveBreak() {
   const duration = Number(document.getElementById("break-duration").value);
   errEl.style.display = "none";
 
-  if (!selectedJournalSlot || !duration) {
+  if (!selectedJournalSlot || !duration || duration % 30 !== 0) {
     errEl.textContent = "Выберите время перерыва.";
     errEl.style.display = "block";
     return;
@@ -1097,4 +1098,3 @@ async function unlinkService(specialistId, serviceId) {
   allSpecialists = await api("GET", "/admin/specialists");
   loadSpecialistsList();
 }
-
