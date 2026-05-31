@@ -5,6 +5,10 @@ const API = window.BARBERSHOP_API_URL
       ? "https://api.andreipalych.by/api"
     : `${window.location.origin}/api`);
 const BARBERSHOP_TIME_ZONE = "Europe/Minsk";
+const JOURNAL_START_HOUR = 8;
+const JOURNAL_END_HOUR = 21;
+const JOURNAL_HOUR_HEIGHT = 92;
+const BREAK_PHONE = "__BREAK__";
 let token = localStorage.getItem("ap_admin_token") || "";
 let allSpecialists = [];
 let allServices = [];
@@ -14,6 +18,9 @@ let appointmentSlotDate = getBarbershopDateString(new Date());
 let selectedAppointmentSlot = "";
 let clientsSearchTimer = null;
 let scheduleDateRecords = [];
+let appointmentFixedSlot = null;
+let appointmentMaxDuration = null;
+let selectedJournalSlot = null;
 
 function isLocalHost(hostname) {
   return ["localhost", "127.0.0.1", ""].includes(hostname)
@@ -121,7 +128,8 @@ async function loadAppointments() {
   }
 
   const now = new Date();
-  const hours = Array.from({ length: 13 }, (_, i) => 8 + i);
+  const hours = Array.from({ length: JOURNAL_END_HOUR - JOURNAL_START_HOUR + 1 }, (_, i) => JOURNAL_START_HOUR + i);
+  const timelineHeight = (JOURNAL_END_HOUR - JOURNAL_START_HOUR) * JOURNAL_HOUR_HEIGHT;
 
   el.innerHTML = `
     <div class="journal-scroll">
@@ -133,16 +141,19 @@ async function loadAppointments() {
             <span>${escapeHtml(s.name)}</span>
           </div>
         `).join("")}
-        ${hours.map(hour => `
-          <div class="time-cell">${String(hour).padStart(2, "0")}:00</div>
-          ${allSpecialists.map(s => `
-            <div class="journal-cell">
-              ${rows
-                .filter(r => r.specialistId === s.id && getHourInBarbershopTz(r.datetime_start) === hour)
-                .map(r => renderJournalAppointment(r, now))
-                .join("")}
-            </div>
+        <div class="time-rail" style="height:${timelineHeight}px">
+          ${hours.slice(0, -1).map(hour => `
+            <div class="time-mark" style="top:${(hour - JOURNAL_START_HOUR) * JOURNAL_HOUR_HEIGHT}px">${String(hour).padStart(2, "0")}:00</div>
           `).join("")}
+        </div>
+        ${allSpecialists.map(s => `
+          <div class="journal-column" style="height:${timelineHeight}px">
+            ${renderJournalFreeSlots(s, rows)}
+            ${rows
+              .filter(r => r.specialistId === s.id)
+              .map(r => renderJournalAppointment(r, now))
+              .join("")}
+          </div>
         `).join("")}
       </div>
     </div>`;
@@ -153,14 +164,133 @@ function renderJournalAppointment(row, now) {
   const end = new Date(row.datetime_end);
   const isPast = end < now;
   const time = `${formatTime(start)}-${formatTime(end)}`;
+  const startMinutes = getMinutesInBarbershopTz(start);
+  const endMinutes = getMinutesInBarbershopTz(end);
+  const top = ((startMinutes - JOURNAL_START_HOUR * 60) / 60) * JOURNAL_HOUR_HEIGHT;
+  const height = Math.max(34, ((endMinutes - startMinutes) / 60) * JOURNAL_HOUR_HEIGHT - 6);
+  const isBreak = row.client_phone === BREAK_PHONE;
   return `
-    <div class="journal-appt ${isPast ? "past" : ""}">
+    <div class="journal-appt ${isPast ? "past" : ""} ${isBreak ? "break" : ""}" style="top:${top}px;height:${height}px">
       <div class="journal-appt-time">${time}</div>
-      <div class="journal-appt-client">${escapeHtml(row.client_name)}</div>
-      <div class="journal-appt-phone">${escapeHtml(row.client_phone)}</div>
-      <div class="journal-appt-service">${escapeHtml(row.Service?.name || "")}</div>
+      <div class="journal-appt-client">${escapeHtml(isBreak ? "Перерыв" : row.client_name)}</div>
+      ${isBreak ? "" : `<div class="journal-appt-phone">${escapeHtml(row.client_phone)}</div>`}
+      <div class="journal-appt-service">${escapeHtml(isBreak ? "Время недоступно" : row.Service?.name || "")}</div>
       <button class="journal-delete" onclick="deleteAppointment(${row.id})" title="Удалить">×</button>
     </div>`;
+}
+
+function renderJournalFreeSlots(specialist, rows) {
+  const slots = [];
+  const appointments = rows.filter(row => row.specialistId === specialist.id);
+  const intervals = specialist.schedule?.[getWeekdayKeyFromDateString(journalDate)] || [];
+
+  intervals.forEach(interval => {
+    const [from, to] = String(interval).split("-");
+    const fromMinutes = parseTimeToMinutes(from);
+    const toMinutes = parseTimeToMinutes(to);
+    if (fromMinutes === null || toMinutes === null) return;
+
+    for (let minute = fromMinutes; minute + 30 <= toMinutes; minute += 30) {
+      const slot = createBarbershopDateTime(journalDate, minutesToTime(minute));
+      if (slot <= new Date()) continue;
+
+      const slotEnd = new Date(slot.getTime() + 30 * 60000);
+      const busy = appointments.some(row => {
+        const start = new Date(row.datetime_start);
+        const end = new Date(row.datetime_end);
+        return start < slotEnd && end > slot;
+      });
+      if (busy) continue;
+
+      const freeMinutes = getFreeMinutesForSlot(specialist.id, slot, rows);
+      if (freeMinutes < 15) continue;
+
+      const top = ((minute - JOURNAL_START_HOUR * 60) / 60) * JOURNAL_HOUR_HEIGHT;
+      slots.push(`
+        <button
+          type="button"
+          class="journal-free-slot"
+          style="top:${top}px;height:${JOURNAL_HOUR_HEIGHT / 2}px"
+          onclick="openJournalSlotModal(${specialist.id}, '${slot.toISOString()}', ${freeMinutes})"
+          title="Создать запись или перерыв"
+        ></button>`);
+    }
+  });
+
+  return slots.join("");
+}
+
+function openJournalSlotModal(specialistId, slotIso, freeMinutes) {
+  const specialist = allSpecialists.find(s => s.id === Number(specialistId));
+  const slotDate = new Date(slotIso);
+  selectedJournalSlot = { specialistId: Number(specialistId), slotIso, freeMinutes };
+  document.getElementById("journal-slot-title").textContent = "Свободное время";
+  document.getElementById("journal-slot-summary").innerHTML = `
+    <div><strong>${escapeHtml(specialist?.name || "")}</strong></div>
+    <div>${formatDateRu(slotDate)} · ${formatTime(slotDate)}</div>
+    <div>Свободно: ${freeMinutes} мин</div>
+  `;
+  document.getElementById("modal-journal-slot").style.display = "flex";
+}
+
+function startAppointmentFromJournalSlot() {
+  if (!selectedJournalSlot) return;
+  closeModal("modal-journal-slot");
+  openAppointmentModal({
+    specialistId: selectedJournalSlot.specialistId,
+    slotIso: selectedJournalSlot.slotIso,
+    maxDuration: selectedJournalSlot.freeMinutes,
+  });
+}
+
+function openBreakModalFromJournalSlot() {
+  if (!selectedJournalSlot) return;
+  const slotDate = new Date(selectedJournalSlot.slotIso);
+  const specialist = allSpecialists.find(s => s.id === selectedJournalSlot.specialistId);
+  const maxDuration = Math.min(selectedJournalSlot.freeMinutes, 180);
+  const options = [15, 30, 45, 60, 90, 120, 180].filter(value => value <= maxDuration);
+  const durationSelect = document.getElementById("break-duration");
+
+  closeModal("modal-journal-slot");
+  document.getElementById("break-summary").innerHTML = `
+    <div><strong>${escapeHtml(specialist?.name || "")}</strong></div>
+    <div>${formatDateRu(slotDate)} · ${formatTime(slotDate)}</div>
+    <div>Максимум: ${selectedJournalSlot.freeMinutes} мин</div>
+  `;
+  durationSelect.innerHTML = options.map(value => `<option value="${value}">${value} мин</option>`).join("");
+  document.getElementById("break-error").style.display = "none";
+  document.getElementById("modal-break").style.display = "flex";
+}
+
+async function saveBreak() {
+  const errEl = document.getElementById("break-error");
+  const duration = Number(document.getElementById("break-duration").value);
+  errEl.style.display = "none";
+
+  if (!selectedJournalSlot || !duration) {
+    errEl.textContent = "Выберите время перерыва.";
+    errEl.style.display = "block";
+    return;
+  }
+
+  if (duration > selectedJournalSlot.freeMinutes) {
+    errEl.textContent = "Перерыв длиннее свободного промежутка.";
+    errEl.style.display = "block";
+    return;
+  }
+
+  try {
+    await api("POST", "/admin/breaks", {
+      specialistId: selectedJournalSlot.specialistId,
+      datetime_start: new Date(selectedJournalSlot.slotIso).toISOString(),
+      duration_min: duration,
+    });
+    closeModal("modal-break");
+    await loadAppointments();
+  } catch (err) {
+    errEl.textContent = "Не удалось создать перерыв. Проверьте свободное время.";
+    errEl.style.display = "block";
+  }
 }
 
 function setJournalDate(value) {
@@ -185,27 +315,31 @@ async function deleteAppointment(id) {
   loadAppointments();
 }
 
-function openAppointmentModal() {
+function openAppointmentModal(options = {}) {
   document.getElementById("appt-details-step").style.display = "block";
   document.getElementById("appt-phone").value = "";
   document.getElementById("appt-name").value = "";
-  document.getElementById("appt-datetime").value = "";
-  document.getElementById("appt-date").value = "";
+  document.getElementById("appt-datetime").value = options.slotIso || "";
+  document.getElementById("appt-date").value = options.slotIso ? getBarbershopDateString(new Date(options.slotIso)) : "";
   document.getElementById("appt-slots").innerHTML = "";
   document.getElementById("appt-step-summary").innerHTML = "";
   document.getElementById("appt-slot-step").style.display = "none";
-  document.getElementById("appt-save-btn").style.display = "none";
-  document.getElementById("appt-next-btn").style.display = "block";
+  document.getElementById("appt-save-btn").style.display = options.slotIso ? "block" : "none";
+  document.getElementById("appt-next-btn").style.display = options.slotIso ? "none" : "block";
   document.getElementById("appt-service-field").style.display = "none";
   document.getElementById("appt-error").style.display = "none";
-  selectedAppointmentSlot = "";
-  appointmentSlotDate = getBarbershopDateString(new Date());
+  selectedAppointmentSlot = options.slotIso || "";
+  appointmentFixedSlot = options.slotIso || null;
+  appointmentMaxDuration = options.maxDuration || null;
+  appointmentSlotDate = options.slotIso ? getBarbershopDateString(new Date(options.slotIso)) : getBarbershopDateString(new Date());
 
   const specialistSel = document.getElementById("appt-specialist");
   specialistSel.innerHTML = `<option value="">Выберите специалиста</option>`;
   allSpecialists.forEach(s => {
     specialistSel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
   });
+  if (options.specialistId) specialistSel.value = String(options.specialistId);
+  specialistSel.disabled = Boolean(options.specialistId);
   updateAppointmentServices();
 
   document.getElementById("modal-appointment").style.display = "flex";
@@ -218,20 +352,28 @@ function updateAppointmentServices() {
   const specialist = allSpecialists.find(s => s.id === specialistId);
 
   serviceSel.innerHTML = `<option value="">Выберите услугу</option>`;
-  (specialist?.Services || []).forEach(service => {
+  const services = (specialist?.Services || []).filter(service => {
+    const duration = Number(service.SpecialistService?.duration_min || 0);
+    return !appointmentMaxDuration || duration <= appointmentMaxDuration;
+  });
+
+  services.forEach(service => {
     const link = service.SpecialistService;
     const details = link ? ` · ${link.duration_min} мин · ${link.price} BYN` : "";
     serviceSel.innerHTML += `<option value="${service.id}">${service.name}${details}</option>`;
   });
+  if (specialist && !services.length && appointmentMaxDuration) {
+    serviceSel.innerHTML += `<option value="" disabled>Нет услуг, которые помещаются в свободное время</option>`;
+  }
   serviceField.style.display = specialist ? "block" : "none";
   resetAppointmentSlotSelection();
 }
 
 function resetAppointmentSlotSelection() {
-  document.getElementById("appt-save-btn").style.display = "none";
-  document.getElementById("appt-next-btn").style.display = "block";
-  selectedAppointmentSlot = "";
-  document.getElementById("appt-datetime").value = "";
+  document.getElementById("appt-save-btn").style.display = appointmentFixedSlot ? "block" : "none";
+  document.getElementById("appt-next-btn").style.display = appointmentFixedSlot ? "none" : "block";
+  selectedAppointmentSlot = appointmentFixedSlot || "";
+  document.getElementById("appt-datetime").value = appointmentFixedSlot || "";
 }
 
 async function showAppointmentSlots() {
@@ -805,6 +947,44 @@ function getDefaultScheduleInterval(specId, dateString) {
   return specialist?.schedule?.[weekdayKey]?.[0] || "";
 }
 
+function getWeekdayKeyFromDateString(dateString) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][date.getUTCDay()];
+}
+
+function createBarbershopDateTime(dateString, time) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const [hours, minutes] = time.split(":").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, hours - 3, minutes, 0, 0));
+}
+
+function minutesToTime(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+}
+
+function getFreeMinutesForSlot(specialistId, slotDate, rows) {
+  const specialist = allSpecialists.find(s => s.id === Number(specialistId));
+  const dateString = getBarbershopDateString(slotDate);
+  const slotMinutes = getMinutesInBarbershopTz(slotDate);
+  const interval = (specialist?.schedule?.[getWeekdayKeyFromDateString(dateString)] || [])
+    .map(value => String(value).split("-"))
+    .map(([from, to]) => ({ from: parseTimeToMinutes(from), to: parseTimeToMinutes(to) }))
+    .find(value => value.from !== null && value.to !== null && slotMinutes >= value.from && slotMinutes < value.to);
+
+  if (!interval) return 0;
+
+  const nextAppointmentStart = rows
+    .filter(row => row.specialistId === Number(specialistId) && new Date(row.datetime_start) > slotDate)
+    .map(row => getMinutesInBarbershopTz(row.datetime_start))
+    .filter(minutes => minutes >= slotMinutes)
+    .sort((a, b) => a - b)[0];
+
+  return Math.max(0, (nextAppointmentStart || interval.to) - slotMinutes);
+}
+
 function getBarbershopDateString(date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: BARBERSHOP_TIME_ZONE,
@@ -836,6 +1016,17 @@ function getHourInBarbershopTz(dateValue) {
   return Number(parts.find(part => part.type === "hour")?.value || 0);
 }
 
+function getMinutesInBarbershopTz(dateValue) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: BARBERSHOP_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(dateValue));
+  const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return Number(value.hour || 0) * 60 + Number(value.minute || 0);
+}
+
 function parseTimeToMinutes(time) {
   const [hours, minutes] = String(time || "").split(":").map(Number);
   if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
@@ -847,6 +1038,15 @@ function formatTime(date) {
   return date.toLocaleTimeString("ru-RU", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: BARBERSHOP_TIME_ZONE,
+  });
+}
+
+function formatDateRu(date) {
+  return date.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
     timeZone: BARBERSHOP_TIME_ZONE,
   });
 }

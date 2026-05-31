@@ -311,6 +311,7 @@ body {
   border-radius: 14px;
   background: #151515;
   overflow: hidden;
+  align-items: start;
 }
 
 .time-head,
@@ -362,14 +363,70 @@ body {
     #181818;
 }
 
-.journal-appt {
+.time-rail {
   position: relative;
+  background: #171717;
+  border-top: 1px solid #242424;
+}
+
+.time-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding: 8px 10px 0;
+  color: #888;
+  border-top: 1px solid #242424;
+  font-size: 13px;
+}
+
+.journal-column {
+  position: relative;
+  border-top: 1px solid #242424;
+  border-left: 1px solid #242424;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px) 0 0 / 100% 46px,
+    #181818;
+}
+
+.journal-free-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.journal-free-slot:hover {
+  background: rgba(181, 158, 92, 0.16);
+  outline: 1px solid rgba(181, 158, 92, 0.42);
+  outline-offset: -1px;
+}
+
+.journal-appt {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  z-index: 2;
   background: #a9e4bd;
   color: #173320;
   border-radius: 7px;
-  margin-bottom: 6px;
   overflow: hidden;
   box-shadow: 0 5px 12px rgba(0,0,0,0.16);
+}
+
+.journal-appt.break {
+  background: #323232;
+  color: #ddd;
+}
+
+.journal-appt.break .journal-appt-time {
+  background: #555;
+}
+
+.journal-appt.break .journal-appt-service {
+  color: #aaa;
 }
 
 .journal-appt.past {
