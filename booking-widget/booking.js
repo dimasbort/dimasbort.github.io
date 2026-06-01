@@ -166,7 +166,7 @@ async function loadServices(id) {
       <div class="booking-card" onclick="chooseService(${s.id}, '${s.name}', ${s.duration_min}, ${s.price})">
         <div>
           <div class="booking-card-title">${s.name}</div>
-          <div class="booking-card-sub">${s.duration_min} мин &mdash; ${s.price} BYN</div>
+          <div class="booking-card-sub">${formatDuration(s.duration_min)} &mdash; ${s.price} BYN</div>
         </div>
       </div>
     `).join("")}
@@ -392,7 +392,7 @@ function renderClientForm() {
       <div class="summary-divider"></div>
       <div class="summary-service-row">
         <span>${bookingData.serviceName}</span>
-        <span>${bookingData.servicePrice} BYN</span>
+        <span>${formatDuration(bookingData.serviceDuration)} · ${bookingData.servicePrice} BYN</span>
       </div>
       <div class="summary-total-row">
         <span>Итого</span>
@@ -641,7 +641,7 @@ function showSuccessStep(name, phone, password, isExisting) {
       <div class="success-icon">✓</div>
       <h3>Вы успешно записаны!</h3>
       <p><strong>${bookingData.specialistName}</strong></p>
-      <p>${bookingData.serviceName}</p>
+      <p>${bookingData.serviceName} · ${formatDuration(bookingData.serviceDuration)}</p>
       <p>${dt.toLocaleDateString("ru-RU", {weekday:"long", day:"numeric", month:"long", timeZone: BARBERSHOP_TIME_ZONE})},
          ${dt.toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit", timeZone: BARBERSHOP_TIME_ZONE})}</p>
       
@@ -700,6 +700,16 @@ function getEndTime(start, duration) {
   return end.toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit", timeZone: BARBERSHOP_TIME_ZONE});
 }
 
+
+function formatDuration(value) {
+  const totalMinutes = Number(value);
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) return "";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (!hours) return `${minutes} мин`;
+  if (!minutes) return `${hours} ч`;
+  return `${hours} ч ${minutes} мин`;
+}
 
 // Плавающая кнопка
 // document.addEventListener("DOMContentLoaded", () => {

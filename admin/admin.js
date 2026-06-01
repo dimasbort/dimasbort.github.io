@@ -229,7 +229,7 @@ function openJournalSlotModal(specialistId, slotIso, freeMinutes) {
   document.getElementById("journal-slot-summary").innerHTML = `
     <div><strong>${escapeHtml(specialist?.name || "")}</strong></div>
     <div>${formatDateRu(slotDate)} · ${formatTime(slotDate)}</div>
-    <div>Свободно: ${freeMinutes} мин</div>
+    <div>Свободно: ${formatDuration(freeMinutes)}</div>
   `;
   document.getElementById("modal-journal-slot").style.display = "flex";
 }
@@ -256,9 +256,9 @@ function openBreakModalFromJournalSlot() {
   document.getElementById("break-summary").innerHTML = `
     <div><strong>${escapeHtml(specialist?.name || "")}</strong></div>
     <div>${formatDateRu(slotDate)} · ${formatTime(slotDate)}</div>
-    <div>Максимум: ${selectedJournalSlot.freeMinutes} мин</div>
+    <div>Максимум: ${formatDuration(selectedJournalSlot.freeMinutes)}</div>
   `;
-  durationSelect.innerHTML = options.map(value => `<option value="${value}">${value} мин</option>`).join("");
+  durationSelect.innerHTML = options.map(value => `<option value="${value}">${formatDuration(value)}</option>`).join("");
   document.getElementById("break-error").style.display = "none";
   document.getElementById("modal-break").style.display = "flex";
 }
@@ -360,7 +360,7 @@ function updateAppointmentServices() {
 
   services.forEach(service => {
     const link = service.SpecialistService;
-    const details = link ? ` · ${link.duration_min} мин · ${link.price} BYN` : "";
+    const details = link ? ` · ${formatDuration(link.duration_min)} · ${link.price} BYN` : "";
     serviceSel.innerHTML += `<option value="${service.id}">${service.name}${details}</option>`;
   });
   if (specialist && !services.length && appointmentMaxDuration) {
@@ -497,7 +497,7 @@ async function loadSpecialistsList() {
               ${s.id},'${s.name}',
               ${svc.id},'${svc.name}',
               ${price},${dur}
-            )">${svc.name} · ${price} BYN · ${dur} мин</span>
+            )">${svc.name} · ${price} BYN · ${formatDuration(dur)}</span>
             <button
               class="tag-delete"
               title="Удалить связь"
@@ -1033,6 +1033,16 @@ function parseTimeToMinutes(time) {
   if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   return hours * 60 + minutes;
+}
+
+function formatDuration(value) {
+  const totalMinutes = Number(value);
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) return "";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (!hours) return `${minutes} мин`;
+  if (!minutes) return `${hours} ч`;
+  return `${hours} ч ${minutes} мин`;
 }
 
 function formatTime(date) {
