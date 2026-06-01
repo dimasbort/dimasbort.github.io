@@ -318,7 +318,7 @@ async function deleteAppointment(id) {
 
 function openAppointmentModal(options = {}) {
   document.getElementById("appt-details-step").style.display = "block";
-  document.getElementById("appt-phone").value = "";
+  document.getElementById("appt-phone").value = "+375 ";
   document.getElementById("appt-name").value = "";
   document.getElementById("appt-datetime").value = options.slotIso || "";
   document.getElementById("appt-date").value = options.slotIso ? getBarbershopDateString(new Date(options.slotIso)) : "";

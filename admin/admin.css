@@ -395,12 +395,13 @@ body {
   right: 0;
   z-index: 1;
   border: none;
-  background: transparent;
+  background: rgba(181, 158, 92, 0.055);
   cursor: pointer;
+  transition: background 0.16s ease, outline-color 0.16s ease;
 }
 
 .journal-free-slot:hover {
-  background: rgba(181, 158, 92, 0.16);
+  background: rgba(181, 158, 92, 0.18);
   outline: 1px solid rgba(181, 158, 92, 0.42);
   outline-offset: -1px;
 }
