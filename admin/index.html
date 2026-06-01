@@ -227,8 +227,14 @@
         <button onclick="closeModal('modal-ss')">✕</button>
       </div>
       <div id="modal-ss-name" class="a-label"></div>
-      <input id="ss-price"    class="a-input" placeholder="Цена (BYN)" type="number">
-      <input id="ss-duration" class="a-input" placeholder="Длительность (мин)" type="number">
+      <label class="a-field">
+        <span>Цена (BYN)</span>
+        <input id="ss-price" class="a-input" placeholder="Например, 35" type="number">
+      </label>
+      <label class="a-field">
+        <span>Время (мин)</span>
+        <input id="ss-duration" class="a-input" placeholder="Например, 60" type="number">
+      </label>
       <input type="hidden" id="ss-specialist-id">
       <input type="hidden" id="ss-service-id">
       <button class="a-btn" onclick="saveSpecialistService()">Сохранить</button>
