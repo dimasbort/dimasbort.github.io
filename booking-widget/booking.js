@@ -206,11 +206,11 @@ function renderCalendar() {
   const today = new Date();
   const firstDay = new Date(currentYear, currentMonth, 1);
 
-  // Определяем границы допустимых дней (7 дней вперёд)
+  // Определяем границы допустимых дней (14 дней вперёд)
   const minDate = new Date(today);
   minDate.setHours(0,0,0,0);
   const maxDate = new Date(today);
-  maxDate.setDate(today.getDate() + 7);
+  maxDate.setDate(today.getDate() + 14);
   maxDate.setHours(23,59,59,999);
 
   // День недели первого числа (пн=0 ... вс=6)
