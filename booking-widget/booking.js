@@ -430,6 +430,8 @@ function renderClientForm() {
           </div>
         </div>
       </div>
+
+      ${existingClient?.hasEmail ? "" : `<input id="client-email" class="booking-input" type="email" autocomplete="email" placeholder="Ваш email *" required>`}
       
       <div class="form-actions">
         <button class="booking-btn secondary" onclick="goBackToPhoneCheck()">Назад</button>
@@ -452,6 +454,7 @@ function renderClientForm() {
       </div>
       
       <input id="client-name" class="booking-input" placeholder="Ваше имя *" required>
+      <input id="client-email" class="booking-input" type="email" autocomplete="email" placeholder="Ваш email *" required>
       <input id="client-password" class="booking-input" type="password" placeholder="Придумайте пароль (мин. 4 символа) *" required>
       
       <label class="gdpr-checkbox">
@@ -536,6 +539,13 @@ function goBackToPhoneCheck() {
 async function submitBookingExisting() {
   const phone = "+375" + clientPhone;
   const errEl = document.getElementById("form-error");
+  const email = existingClient?.hasEmail ? "" : document.getElementById("client-email")?.value.trim();
+
+  if (!existingClient?.hasEmail && !isValidEmail(email)) {
+    errEl.textContent = "Укажите корректный email.";
+    errEl.style.display = "block";
+    return;
+  }
 
   try {
     const appointmentData = {
@@ -543,6 +553,7 @@ async function submitBookingExisting() {
       serviceId: bookingData.serviceId,
       client_name: existingClient.name,
       client_phone: phone,
+      client_email: email,
       datetime_start: bookingData.datetime_start,
       gdpr_consent: true,
     };
@@ -575,12 +586,18 @@ async function submitBookingExisting() {
 async function submitBookingNew() {
   const phone = "+375" + clientPhone;
   const name = document.getElementById("client-name").value.trim();
+  const email = document.getElementById("client-email").value.trim();
   const password = document.getElementById("client-password").value.trim();
   const gdprConsent = document.getElementById("gdpr-consent").checked;
   const errEl = document.getElementById("form-error");
 
   if (!name) {
     errEl.textContent = "Введите ваше имя.";
+    errEl.style.display = "block";
+    return;
+  }
+  if (!isValidEmail(email)) {
+    errEl.textContent = "Укажите корректный email.";
     errEl.style.display = "block";
     return;
   }
@@ -602,6 +619,7 @@ async function submitBookingNew() {
       serviceId: bookingData.serviceId,
       client_name: name,
       client_phone: phone,
+      client_email: email,
       client_password: password,
       datetime_start: bookingData.datetime_start,
       gdpr_consent: true,
@@ -709,6 +727,11 @@ function formatDuration(value) {
   if (!hours) return `${minutes} мин`;
   if (!minutes) return `${hours} ч`;
   return `${hours} ч ${minutes} мин`;
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim())
+    && String(value).trim().length <= 254;
 }
 
 // Плавающая кнопка

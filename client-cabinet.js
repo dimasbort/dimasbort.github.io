@@ -150,6 +150,7 @@ async function loadProfile() {
 
     clientProfile = data;
     document.getElementById('profile-name').value = data.name || '';
+    document.getElementById('profile-email').value = data.email || '';
   } catch (err) {
     console.error('Profile error:', err);
   }
@@ -161,6 +162,33 @@ function toggleProfilePanel(force) {
   panel.style.display = shouldShow ? 'block' : 'none';
   if (shouldShow && clientProfile) {
     document.getElementById('profile-name').value = clientProfile.name || '';
+    document.getElementById('profile-email').value = clientProfile.email || '';
+  }
+}
+
+async function updateProfileEmail() {
+  const email = document.getElementById('profile-email').value.trim();
+  const msgEl = document.getElementById('profile-email-message');
+  const errEl = document.getElementById('profile-email-error');
+  msgEl.style.display = 'none';
+  errEl.style.display = 'none';
+
+  try {
+    const { res, data } = await authedFetch('/client/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok || data.error) {
+      errEl.textContent = data.error || 'Не удалось сохранить email';
+      errEl.style.display = 'block';
+      return;
+    }
+    clientProfile = data.client;
+    msgEl.textContent = 'Email сохранён';
+    msgEl.style.display = 'block';
+  } catch (err) {
+    errEl.textContent = err.message || 'Ошибка сети';
+    errEl.style.display = 'block';
   }
 }
 

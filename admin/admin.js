@@ -99,6 +99,7 @@ function showPage(name) {
   if (name === "specialists") loadSpecialistsList();
   if (name === "services") loadServicesList();
   if (name === "clients") loadClients();
+  if (name === "balance") loadBalance();
 }
 
 function toggleAdminMenu(force) {
@@ -170,8 +171,9 @@ function renderJournalAppointment(row, now) {
   const duration = endMinutes - startMinutes;
   const height = Math.max(34, (duration / 60) * JOURNAL_HOUR_HEIGHT - 6);
   const isBreak = row.client_phone === BREAK_PHONE;
+  const sourceClass = row.creation_source === "admin" ? "created-admin" : "created-client";
   return `
-    <div class="journal-appt ${isPast ? "past" : ""} ${isBreak ? "break" : ""}" style="top:${top}px;height:${height}px">
+    <div class="journal-appt ${isPast ? "past" : ""} ${isBreak ? "break" : sourceClass}" style="top:${top}px;height:${height}px">
       <div class="journal-appt-time">${time}</div>
       <div class="journal-appt-client">${escapeHtml(isBreak ? "Перерыв" : row.client_name)}</div>
       ${isBreak ? "" : `<div class="journal-appt-phone">${escapeHtml(row.client_phone)}</div>`}
@@ -479,6 +481,20 @@ async function saveAppointment() {
   }
 }
 
+async function lookupAdminClient() {
+  const phone = document.getElementById("appt-phone").value.trim();
+  const digits = phone.replace(/\D/g, "");
+  if (!/^375\d{9}$/.test(digits)) return;
+
+  try {
+    const client = await api("GET", `/admin/clients/lookup/${encodeURIComponent(digits)}`);
+    const nameInput = document.getElementById("appt-name");
+    if (client.name && !nameInput.value.trim()) nameInput.value = client.name;
+  } catch (err) {
+    console.warn("Could not look up client details", err);
+  }
+}
+
 // ── Специалисты ────────────────────────────────────────────────────
 
 async function loadSpecialistsList() {
@@ -758,6 +774,56 @@ function toggleBroadcastPanel(force) {
   if (button) button.textContent = shouldOpen ? "Скрыть сообщение" : "Отправить сообщение";
 }
 
+async function loadBalance() {
+  try {
+    renderBalance(await api("GET", "/admin/balance"));
+  } catch (err) {
+    const checked = document.getElementById("balance-checked-at");
+    if (checked) checked.textContent = "Не удалось загрузить данные баланса";
+  }
+}
+
+function renderBalance(state) {
+  const amount = document.getElementById("balance-amount");
+  const checked = document.getElementById("balance-checked-at");
+  const phone = document.getElementById("balance-alert-phone");
+  if (!amount || !checked || !phone) return;
+  amount.textContent = state.balance_byn === null || state.balance_byn === undefined
+    ? "Нет данных"
+    : `${Number(state.balance_byn).toFixed(2)} BYN`;
+  checked.textContent = state.checked_at
+    ? `Проверено: ${new Date(state.checked_at).toLocaleString("ru-RU", { timeZone: BARBERSHOP_TIME_ZONE })}`
+    : "Пока не проверялся";
+  phone.value = state.notification_phone || "";
+}
+
+async function saveBalanceSettings(event) {
+  event.preventDefault();
+  const status = document.getElementById("balance-settings-status");
+  status.className = "form-status";
+  status.style.display = "block";
+  status.textContent = "Сохраняем номер...";
+  try {
+    await api("PUT", "/admin/balance/settings", {
+      notification_phone: document.getElementById("balance-alert-phone").value.trim(),
+    });
+    status.textContent = "Номер сохранён";
+  } catch (err) {
+    status.textContent = "Не удалось сохранить номер. Проверьте формат телефона.";
+    status.classList.add("error");
+  }
+}
+
+async function refreshBalance() {
+  const checked = document.getElementById("balance-checked-at");
+  checked.textContent = "Запрашиваем баланс websms.by...";
+  try {
+    renderBalance(await api("POST", "/admin/balance/check"));
+  } catch (err) {
+    checked.textContent = "Не удалось проверить баланс. Проверьте настройки websms.by.";
+  }
+}
+
 async function loadClients() {
   const searchEl = document.getElementById("clients-search");
   const listEl = document.getElementById("clients-list");
@@ -785,6 +851,7 @@ async function loadClients() {
           <div class="client-info">
             <div class="client-name">${escapeHtml(name)}</div>
             <div class="client-phone">${escapeHtml(client.phone)}</div>
+            ${client.email ? `<div class="client-email">${escapeHtml(client.email)}</div>` : ""}
           </div>
         </div>`;
     }).join("");
@@ -815,7 +882,7 @@ async function broadcastMessage() {
 
   try {
     const result = await api("POST", "/admin/clients/broadcast", { message });
-    statusEl.textContent = `Готово: отправлено ${result.sent} из ${result.total}. Ошибок: ${result.failed}.`;
+    statusEl.textContent = `Передано websms.by: ${result.sent} из ${result.total}. Ошибок API: ${result.failed}. Факт доставки проверьте по статусам сообщений у провайдера.`;
     messageEl.value = "";
   } catch (err) {
     statusEl.textContent = "Не удалось отправить рассылку. Проверьте настройки SMS.";

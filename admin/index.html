@@ -35,17 +35,20 @@
         <a class="nav-item active" data-page="appointments" onclick="showPage('appointments')">
           📋 Записи
         </a>
+        <a class="nav-item" data-page="schedule" onclick="showPage('schedule')">
+          📅 Расписание
+        </a>
+        <a class="nav-item" data-page="balance" onclick="showPage('balance')">
+          ◉ Баланс
+        </a>
+        <a class="nav-item" data-page="clients" onclick="showPage('clients')">
+          👥 Клиенты
+        </a>
         <a class="nav-item" data-page="specialists" onclick="showPage('specialists')">
           👤 Специалисты
         </a>
         <a class="nav-item" data-page="services" onclick="showPage('services')">
           ✂ Услуги
-        </a>
-        <a class="nav-item" data-page="clients" onclick="showPage('clients')">
-          👥 Клиенты
-        </a>
-        <a class="nav-item" data-page="schedule" onclick="showPage('schedule')">
-          📅 Расписание
         </a>
       </nav>
       <button class="logout-btn" onclick="doLogout()">Выйти</button>
@@ -67,6 +70,10 @@
             <button class="icon-btn" onclick="shiftJournalDate(1)" title="Следующий день">›</button>
             <button class="a-btn small secondary" onclick="goToday()">Сегодня</button>
           </div>
+        </div>
+        <div class="journal-legend" aria-label="Тип записи">
+          <span><i class="journal-legend-client"></i>Запись клиента</span>
+          <span><i class="journal-legend-admin"></i>Запись администратора</span>
         </div>
         <div id="appointments-list" class="journal-board"></div>
       </div>
@@ -96,6 +103,30 @@
         </div>
 
         <div id="clients-list" class="clients-list"></div>
+      </div>
+
+      <div id="page-balance" class="page">
+        <div class="page-header">
+          <div>
+            <h1>Баланс SMS</h1>
+            <div class="page-subtitle">Проверка ежедневно в 09:00</div>
+          </div>
+          <button class="a-btn small secondary" onclick="refreshBalance()">Обновить</button>
+        </div>
+        <div class="balance-panel">
+          <div class="balance-current-label">Текущий остаток websms.by</div>
+          <div id="balance-amount" class="balance-amount">—</div>
+          <div id="balance-checked-at" class="page-subtitle">Пока не проверялся</div>
+        </div>
+        <form class="balance-settings" onsubmit="saveBalanceSettings(event)">
+          <label class="a-field">
+            <span>Номер для оповещения</span>
+            <input id="balance-alert-phone" class="a-input" type="tel" inputmode="tel" placeholder="+375 XX XXX XX XX">
+          </label>
+          <button class="a-btn" type="submit">Сохранить номер</button>
+          <div id="balance-settings-status" class="form-status" style="display:none"></div>
+        </form>
+        <p class="balance-note">SMS отправляется, если баланс опускается ниже 5 BYN. Повторное оповещение придёт при следующей ежедневной проверке.</p>
       </div>
 
       <!-- Специалисты -->
@@ -142,7 +173,7 @@
       <div id="appt-details-step">
         <label class="a-field">
           <span>Телефон клиента</span>
-          <input id="appt-phone" class="a-input" placeholder="+375 XX XXX XX XX" inputmode="tel">
+          <input id="appt-phone" class="a-input" placeholder="+375 XX XXX XX XX" inputmode="tel" onblur="lookupAdminClient()">
         </label>
         <label class="a-field">
           <span>Имя клиента</span>

@@ -298,6 +298,30 @@ body {
   min-width: 0;
 }
 
+.journal-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.journal-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.journal-legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.journal-legend-client { background: #a9e4bd; }
+.journal-legend-admin { background: #b9d8ef; }
+
 .journal-scroll {
   overflow-x: auto;
   padding-bottom: 8px;
@@ -421,6 +445,19 @@ body {
 .journal-appt.break {
   background: #323232;
   color: #ddd;
+}
+
+.journal-appt.created-client {
+  background: #a9e4bd;
+}
+
+.journal-appt.created-admin {
+  background: #b9d8ef;
+  color: #142b3b;
+}
+
+.journal-appt.created-admin .journal-appt-time {
+  background: #397da8;
 }
 
 .journal-appt.break .journal-appt-time {
@@ -780,6 +817,46 @@ body {
   color: #999;
   font-size: 14px;
   margin-top: 3px;
+}
+
+.client-email {
+  color: #b59e5c;
+  font-size: 13px;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+.balance-panel,
+.balance-settings {
+  max-width: 620px;
+  padding: 20px;
+  border: 1px solid #303030;
+  border-radius: 10px;
+  background: #1c1c1c;
+  margin-bottom: 16px;
+}
+
+.balance-current-label {
+  color: #aaa;
+  font-size: 14px;
+}
+
+.balance-amount {
+  color: #d4b96a;
+  font-size: 32px;
+  font-weight: 800;
+  margin: 10px 0;
+}
+
+.balance-settings .a-field {
+  margin-bottom: 14px;
+}
+
+.balance-note {
+  max-width: 620px;
+  color: #999;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .toggle-row {

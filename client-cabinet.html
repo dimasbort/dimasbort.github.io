@@ -341,6 +341,13 @@
             <button class="booking-btn small" onclick="updateProfileName()">Сохранить имя</button>
           </div>
           <div class="profile-section">
+            <div class="profile-section-title">Email</div>
+            <input id="profile-email" class="booking-input" type="email" autocomplete="email" placeholder="Ваш email">
+            <div id="profile-email-message" class="form-success" style="display: none;"></div>
+            <div id="profile-email-error" class="form-error" style="display: none;"></div>
+            <button class="booking-btn small" onclick="updateProfileEmail()">Сохранить email</button>
+          </div>
+          <div class="profile-section">
             <div class="profile-section-title">Пароль</div>
             <input id="current-password" class="booking-input" type="password" placeholder="Текущий пароль">
             <input id="new-password" class="booking-input" type="password" placeholder="Новый пароль">
