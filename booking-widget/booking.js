@@ -75,29 +75,86 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  if (window.location.hash === "#booking") {
-    setTimeout(openModal, 100);
+  if (window.location.hash.startsWith("#booking")) {
+    const transfer = getRescheduleContextFromHash();
+    setTimeout(() => openModal(transfer), 100);
   }
 });
 
 // История шагов для кнопки «Назад»
 const stepHistory = [];
 
-function openModal() {
+function getRescheduleContextFromHash() {
+  const separator = window.location.hash.indexOf("?");
+  if (separator < 0) return null;
+  const params = new URLSearchParams(window.location.hash.slice(separator + 1));
+  const token = params.get("transfer");
+  const appointmentId = Number(params.get("appointment"));
+  const specialistId = Number(params.get("specialist"));
+  const serviceId = Number(params.get("service"));
+  if (!token || !appointmentId || !specialistId || !serviceId) return null;
+  return { token, appointmentId, specialistId, serviceId };
+}
+
+function openModal(rescheduleContext = null) {
   bookingData = {};
   availableDays = [];
   stepHistory.length = 0;
   document.getElementById("booking-modal").classList.add("active");
-  showStep("specialist");
-  loadSpecialists();
+  document.querySelector(".booking-top-title").textContent = rescheduleContext ? "Перенос записи" : "Онлайн запись";
+  if (rescheduleContext) {
+    history.replaceState(null, "", `${window.location.pathname}${window.location.search}#booking`);
+    startRescheduleFlow(rescheduleContext);
+  } else {
+    showStep("specialist");
+    loadSpecialists();
+  }
 }
 
 function closeModal() {
   document.getElementById("booking-modal").classList.remove("active");
+  document.querySelector(".booking-top-title").textContent = "Онлайн запись";
   // сбрасываем состояние
   bookingData = {};
   availableDays = [];
   stepHistory.length = 0;
+}
+
+async function startRescheduleFlow(context) {
+  try {
+    const [specialistsResponse, servicesResponse] = await Promise.all([
+      fetch(`${API_URL}/specialists`),
+      fetch(`${API_URL}/specialists/${context.specialistId}/services`),
+    ]);
+    const specialists = await specialistsResponse.json();
+    const services = await servicesResponse.json();
+    const specialist = specialists.find(item => Number(item.id) === context.specialistId);
+    const service = services.find(item => Number(item.id) === context.serviceId);
+    if (!specialistsResponse.ok || !servicesResponse.ok || !specialist || !service) {
+      throw new Error("Не удалось загрузить услугу для переноса");
+    }
+
+    bookingData = {
+      rescheduleToken: context.token,
+      rescheduleAppointmentId: context.appointmentId,
+      specialistId: specialist.id,
+      specialistName: specialist.name,
+      specialistPhoto: resolveAssetUrl(specialist.photo),
+      specialistDescription: specialist.description || "",
+      serviceId: service.id,
+      serviceName: service.name,
+      serviceDuration: service.duration_min,
+      servicePrice: service.price,
+    };
+    stepHistory.length = 0;
+    showStep("calendar");
+    await loadCalendar();
+  } catch (err) {
+    const step = document.getElementById("step-client");
+    step.innerHTML = `<div class="form-error">${err.message || "Не удалось открыть перенос"}</div>`;
+    stepHistory.length = 0;
+    showStep("client");
+  }
 }
 
 function showStep(name) {
@@ -266,6 +323,7 @@ function renderCalendar() {
 
   document.getElementById("step-calendar").innerHTML = `
     <div class="booking-calendar">
+      ${bookingData.rescheduleToken ? `<div class="booking-section-title">Выберите новое время для услуги «${bookingData.serviceName}»</div>` : ""}
       <div class="calendar-month-nav">
         <button onclick="changeMonth(-1)" ${prevDisabled ? "disabled" : ""}>&#8592;</button>
         <span>${monthNames[currentMonth]} ${currentYear}</span>
@@ -346,7 +404,81 @@ function chooseSlot(datetime, el) {
   bookingData.datetime_start = datetime;
   // небольшая задержка для визуального фидбека
   setTimeout(() => goToStep("client"), 300);
-  showClientForm();
+  if (bookingData.rescheduleToken) showRescheduleForm();
+  else showClientForm();
+}
+
+function showRescheduleForm() {
+  const dt = new Date(bookingData.datetime_start);
+  const date = dt.toLocaleDateString("ru-RU", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: BARBERSHOP_TIME_ZONE,
+  });
+  const time = dt.toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: BARBERSHOP_TIME_ZONE,
+  });
+
+  document.getElementById("step-client").innerHTML = `
+    <div class="booking-section-title">Подтвердите новое время</div>
+    <div class="booking-summary">
+      <div class="summary-name">${bookingData.specialistName}</div>
+      <div class="summary-sub">${bookingData.serviceName}</div>
+      <div class="summary-sub">${date}, ${time}</div>
+    </div>
+    <div id="reschedule-error" class="form-error" style="display:none"></div>
+    <button class="booking-btn" type="button" onclick="submitReschedule()">Перенести запись</button>`;
+}
+
+async function submitReschedule() {
+  const errorEl = document.getElementById("reschedule-error");
+  const submitButton = document.querySelector("#step-client .booking-btn");
+  if (!submitButton || submitButton.disabled) return;
+  errorEl.style.display = "none";
+  submitButton.disabled = true;
+  submitButton.textContent = "Переносим...";
+  try {
+    const response = await fetch(
+      `${API_URL}/client/appointments/${bookingData.rescheduleAppointmentId}/reschedule`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Reschedule-Token": bookingData.rescheduleToken,
+        },
+        body: JSON.stringify({ datetime_start: bookingData.datetime_start }),
+      }
+    );
+    const result = await response.json();
+    if (!response.ok || result.error) {
+      errorEl.textContent = result.error || "Не удалось перенести запись";
+      errorEl.style.display = "block";
+      submitButton.disabled = false;
+      submitButton.textContent = "Перенести запись";
+      return;
+    }
+
+    bookingData.rescheduleToken = null;
+    document.getElementById("step-success").innerHTML = `
+      <div class="booking-success">
+        <div class="success-icon">✓</div>
+        <h3>Запись перенесена</h3>
+        <p>${bookingData.specialistName}</p>
+        <p>${bookingData.serviceName}</p>
+        <p>${new Date(bookingData.datetime_start).toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long", timeZone: BARBERSHOP_TIME_ZONE })}, ${new Date(bookingData.datetime_start).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: BARBERSHOP_TIME_ZONE })}</p>
+        <button class="booking-btn" type="button" onclick="closeModal()">Готово</button>
+      </div>`;
+    stepHistory.length = 0;
+    showStep("success");
+  } catch (err) {
+    errorEl.textContent = "Ошибка сети. Старая запись сохранена; попробуйте ещё раз.";
+    errorEl.style.display = "block";
+    submitButton.disabled = false;
+    submitButton.textContent = "Перенести запись";
+  }
 }
 
 // ─────────────────────────────────────────

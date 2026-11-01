@@ -422,6 +422,7 @@ async function loadAppointments() {
             ${!canCancel ? `<p style="color: #888; font-size: 12px;">⏰ До записи меньше 45 минут</p>` : ''}
           </div>
           <div class="appointment-actions">
+            ${canCancel ? `<button class="btn-reschedule" onclick="rescheduleAppointment(${app.id})">Перенести</button>` : ''}
             <button 
               class="btn-cancel" 
               onclick="cancelAppointment(${app.id})"
@@ -435,6 +436,31 @@ async function loadAppointments() {
     }).join('');
   } catch (err) {
     console.error('Ошибка загрузки записей:', err);
+  }
+}
+
+async function rescheduleAppointment(id) {
+  try {
+    const { res, data } = await authedFetch(`/client/appointments/${id}/reschedule-session`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+    if (!res.ok || !data.token) {
+      alert(data.error || 'Не удалось начать перенос записи');
+      return;
+    }
+
+    const target = new URL(SITE_BOOKING_URL);
+    const transferParams = new URLSearchParams({
+      transfer: data.token,
+      appointment: String(id),
+      specialist: String(data.specialistId),
+      service: String(data.serviceId),
+    });
+    target.hash = `booking?${transferParams.toString()}`;
+    window.location.href = target.toString();
+  } catch (err) {
+    alert(err.message || 'Не удалось начать перенос записи');
   }
 }
 
