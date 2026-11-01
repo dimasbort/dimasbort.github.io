@@ -7,7 +7,7 @@ const API = window.BARBERSHOP_API_URL
 const BARBERSHOP_TIME_ZONE = "Europe/Minsk";
 const JOURNAL_START_HOUR = 8;
 const JOURNAL_END_HOUR = 21;
-const JOURNAL_HOUR_HEIGHT = 190;
+const JOURNAL_HOUR_HEIGHT = 220;
 const BREAK_PHONE = "__BREAK__";
 let token = localStorage.getItem("ap_admin_token") || "";
 let allSpecialists = [];
@@ -177,6 +177,7 @@ function renderJournalAppointment(row, now) {
       <div class="journal-appt-time">${time}</div>
       <div class="journal-appt-client">${escapeHtml(isBreak ? "Перерыв" : row.client_name)}</div>
       ${isBreak ? "" : `<div class="journal-appt-phone">${escapeHtml(row.client_phone)}</div>`}
+      ${isBreak || !row.Client?.email ? "" : `<div class="journal-appt-email" title="${escapeHtml(row.Client.email)}">${escapeHtml(row.Client.email)}</div>`}
       <div class="journal-appt-service">${escapeHtml(isBreak ? "Время недоступно" : row.Service?.name || "")}</div>
       <button class="journal-delete" onclick="deleteAppointment(${row.id})" title="Удалить">×</button>
     </div>`;

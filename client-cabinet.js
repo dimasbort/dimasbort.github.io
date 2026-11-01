@@ -406,11 +406,11 @@ async function loadAppointments() {
       const timeStr = dt.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', timeZone: BARBERSHOP_TIME_ZONE});
       const endTimeStr = new Date(app.datetime_end).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', timeZone: BARBERSHOP_TIME_ZONE});
       
-      // Можно ли отменить (больше 2 часов до записи)
+      // Отмена доступна не позднее чем за 45 минут до записи.
       const now = new Date();
       const timeDiff = dt.getTime() - now.getTime();
-      const hoursUntil = timeDiff / (1000 * 60 * 60);
-      const canCancel = hoursUntil > 2;
+      const minutesUntil = timeDiff / (1000 * 60);
+      const canCancel = minutesUntil >= 45;
 
       return `
         <div class="appointment-item">
@@ -419,13 +419,13 @@ async function loadAppointments() {
             <p><strong>Специалист:</strong> ${app.Specialist?.name || 'Не указан'}</p>
             <p><strong>Дата:</strong> ${dateStr}</p>
             <p><strong>Время:</strong> ${timeStr} — ${endTimeStr}</p>
-            ${!canCancel ? `<p style="color: #888; font-size: 12px;">⏰ До записи меньше 2 часов</p>` : ''}
+            ${!canCancel ? `<p style="color: #888; font-size: 12px;">⏰ До записи меньше 45 минут</p>` : ''}
           </div>
           <div class="appointment-actions">
             <button 
               class="btn-cancel" 
               onclick="cancelAppointment(${app.id})"
-              ${!canCancel ? 'disabled title="Отменить можно не позднее чем за 2 часа до визита"' : ''}
+              ${!canCancel ? 'disabled title="Отменить можно не позднее чем за 45 минут до визита"' : ''}
             >
               ${canCancel ? 'Отменить' : 'Нельзя отменить'}
             </button>

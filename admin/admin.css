@@ -476,13 +476,14 @@ body {
 .journal-appt-time {
   background: #8d61d8;
   color: #fff;
-  padding: 4px 28px 4px 8px;
-  font-size: 12px;
+  padding: 3px 28px 3px 8px;
+  font-size: 14px;
   font-weight: 800;
 }
 
 .journal-appt-client,
 .journal-appt-phone,
+.journal-appt-email,
 .journal-appt-service {
   padding: 0 8px;
   font-size: 13px;
@@ -493,12 +494,17 @@ body {
 }
 
 .journal-appt-client {
-  padding-top: 7px;
+  padding-top: 3px;
+  font-size: 14px;
   font-weight: 800;
 }
 
+.journal-appt-email {
+  color: #334b3b;
+}
+
 .journal-appt-service {
-  padding-bottom: 8px;
+  padding-bottom: 3px;
   color: rgba(23,51,32,0.8);
 }
 
